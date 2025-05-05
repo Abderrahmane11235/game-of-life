@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/style.css" />
+    <script
+      src="https://kit.fontawesome.com/d98432e467.js"
+      crossorigin="anonymous"
+    ></script>
+    <title>PixiJS - Template</title>
+  </head>
+
+  <body>
+    <div id="app">
+      <div id="game-container">
+        <input type="button" id="start-stop-button" value="Start" />
+        <div class="control">
+          <label><i class="fa-solid fa-gauge fa-lg"></i></label
+          ><input type="range" />
+        </div>
+        <div class="control">
+          <label><i class="fa-solid fa-table-cells fa-lg"></i></label
+          ><input type="range" />
+        </div>
+        <div class="control">
+          <input type="checkbox" name="grid-show" id="show-grid"/>
+          <label for="show-grid"> Show grid </label>
+        </div>
+      </div>
+      <div id="pixi-container"></div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
