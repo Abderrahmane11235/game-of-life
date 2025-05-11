@@ -1,12 +1,4 @@
-import {
-  Application,
-  Assets,
-  Sprite,
-  Graphics,
-  Container,
-  Text,
-} from "pixi.js";
-import { Button } from "@pixi/ui";
+import { Application, Graphics, Container, Text } from "pixi.js";
 
 (async () => {
   const app = new Application();
@@ -15,29 +7,16 @@ import { Button } from "@pixi/ui";
 
   document.getElementById("pixi-container").appendChild(app.canvas);
 
-  const size = 17,
-    col = Math.floor(app.screen.width / size),
-    row = Math.floor(app.screen.height / size);
+  let size = 10,
+    col = 66,
+    row = 66;
 
   let grid = new Array(col * row);
   grid.fill(0);
 
-  grid[150 + 1] = 1;
-  grid[150 + col + 2] = 1;
-  grid[150 + 2 * col] = 1;
-  grid[150 + 2 * col + 1] = 1;
-  grid[150 + 2 * col + 2] = 1;
-  // grid[10 + 2 * col] = 1;
-  // grid[10] = 1;
-  // grid[10 + col - 1] = 1;
-  // grid[10 + 2 * col - 1] = 1;
-  // grid[10 - 1] = 1;
-  // grid[10 + col + 1] = 1;
-  // grid[10 + 2 * col + 1] = 1;
-  // grid[10 + 1] = 1;
-
-  const graphics = new Graphics();
-  app.stage.addChild(graphics);
+  grid[0] = 1;
+  grid[3] = 1;
+  grid[cell(col / 2, row / 2)] = 1;
 
   function applyRules(nn, v) {
     if (v == 1) {
@@ -69,103 +48,186 @@ import { Button } from "@pixi/ui";
   }
 
   function cell(x, y) {
-    return x + y * col + 1;
+    return x + y * col;
   }
 
-  console.log(neighborsNumber(10));
+  // game-container
+  const startStopButton = document.getElementById("start-stop-button");
+  let started = true;
 
-  let start = true;
-  let intervalId = null; // Store the interval ID
+  const graphics = new Graphics();
+  const graphicsContainer = new Container();
 
-  function startSimulation() {
-    if (intervalId === null) { // Only start if not already running
-      intervalId = setInterval(() => {
-        let newGrid = new Array(col * row);
+  graphicsContainer.eventMode = "static";
+  graphicsContainer.pivot.set((col * size) / 2, (row * size) / 2);
+  graphicsContainer.x = app.screen.width / 2;
+  graphicsContainer.y = app.screen.height / 2;
+
+  const background = new Graphics()
+    .filletRect(0, 0, graphicsContainer.width, graphicsContainer.height, 1)
+    .fill({ color: 0x121212 });
+
+  graphicsContainer.addChild(background);
+  graphicsContainer.addChild(graphics);
+
+  app.stage.addChild(graphicsContainer);
+
+  function updateGrid() {
+    graphics.clear();
+
+    for (let i = 0; i < col * row; i++) {
+      if (1) {
+        graphics
+          .filletRect(
+            (i % col) * size,
+            Math.floor(i / col) * size,
+            size,
+            size,
+            0
+          )
+          .fill({
+            color: grid[i]
+              ? [
+                  "#69247C",
+                  "#FFB22C",
+                  "#F6FA70",
+                  "#1230AE",
+                  "#ffffff",
+                  "#FE7743",
+                  "#D50B8B",
+                  "#0079FF",
+                  "#FF9F00",
+                ][neighborsNumber(i)]
+              : 0x121212,
+          });
+      }
+    }
+  }
+  updateGrid();
+
+  let intervalID,
+    intervalSpeed = 55;
+
+  function intervente(started) {
+    if (!started) {
+      intervalID = setInterval(() => {
+        let nextGrid = [];
 
         grid.forEach((value, cell) => {
           let nn = neighborsNumber(cell);
-          newGrid[cell] = applyRules(nn, value);
+          nextGrid[cell] = applyRules(nn, value);
         });
 
-        grid = newGrid;
-      }, 90);
+        grid.forEach((v, i) => {
+          grid[i] = nextGrid[i];
+        });
+
+        updateGrid();
+      }, intervalSpeed);
+    } else {
+      clearInterval(intervalID);
     }
   }
 
-  function stopSimulation() {
-    if (intervalId !== null) {
-      clearInterval(intervalId);
-      intervalId = null;
-    }
-  }
+  startStopButton.addEventListener("click", (event) => {
+    started = !started;
 
-  // Start initially if start is true
-  if (start) {
-    startSimulation();
-  }
+    event.currentTarget.value = !started ? "Stop" : "Start";
 
-  graphics.eventMode = "static";
-  graphics.on("pointerdown", (event) => {
+    intervente(started);
+  });
+
+  document
+    .getElementById("speed-controller")
+    .addEventListener("change", (event) => {
+      intervalSpeed = event.target.value;
+      intervente(true);
+      intervente(false);
+    });
+
+  graphicsContainer.on("pointerdown", (event) => {
     const mouse = event.global;
 
-    const x = Math.floor(mouse.x / size);
-    const y = Math.floor(mouse.y / size);
+    const x = Math.floor(
+      (mouse.x - graphicsContainer.x) / (size * graphicsContainer.scale.x) +
+        col / 2
+    );
+    const y = Math.floor(
+      (mouse.y - graphicsContainer.y) / (size * graphicsContainer.scale.y) +
+        row / 2
+    );
 
-    grid[cell(x, y)] = 1;
-
-    console.log(x, y);
+    grid[cell(x, y)] = !grid[cell(x, y)];
+    updateGrid();
   });
 
-  const container = new Container();
-  container.x = 20;
-  container.y = 20;
+  let drag = false;
+  let dx = 0,
+    dy = 0,
+    prevX,
+    prevY;
 
-  // Create a more visible button with text
-  const buttonGraphics = new Graphics().fill(0xffffff).rect(0, 0, 100, 50);
+  app.stage.eventMode = "static";
 
-  const buttonText = new Text({
-    text: "Start",
-    style: {
-      fill: 0xff,
-      fontSize: 20,
-    },
+  document
+    .getElementById("pixi-container")
+    .addEventListener("mousemove", (event) => {
+      const currX = event.x;
+      const currY = event.y;
+
+      if (prevX && prevY) {
+        dx = currX - prevX;
+        dy = currY - prevY;
+      }
+      prevX = currX;
+      prevY = currY;
+      if (drag) {
+        graphicsContainer.x += dx;
+        graphicsContainer.y += dy;
+      }
+    });
+
+  document
+    .getElementById("grid-size-control")
+    .addEventListener("change", (event) => {
+      graphicsContainer.scale.set(event.target.value);
+      updateGrid();
+    });
+
+  window.addEventListener("wheel", (event) => {
+    graphicsContainer.scale.set(
+      graphicsContainer.scale.x - 0.1 * Math.sign(event.deltaY)
+    );
+
+    updateGrid();
   });
-  buttonText.x = 25; // Center text in button
-  buttonText.y = 15;
 
-  buttonGraphics.addChild(buttonText);
-
-  const button = new Button(buttonGraphics);
-  button.view.eventMode = "static";
-
-  button.onPress.connect(() => {
-    console.log("Button pressed!");
-    start = !start;
-    
-    if (start) {
-      startSimulation();
-      buttonText.text = "Stop"; // Update button text
-    } else {
-      stopSimulation();
-      buttonText.text = "Start"; // Update button text
-    }
+  window.addEventListener("mousedown", () => {
+    drag = true;
   });
 
-  container.addChild(button.view);
-  app.stage.addChild(container);
+  window.addEventListener("mouseup", () => {
+    drag = false;
+  });
+
+  let FPSText;
+
+  document.fonts.load("16px Geist Mono").then(() => {
+    FPSText = new Text({
+      text: "FPS: 0",
+      style: {
+        fontFamily: "Geist Mono",
+        fontSize: 15,
+        fill: 0xffffff,
+      },
+      x: app.screen.width - 75,
+      y: app.screen.height - 30,
+    });
+
+    app.stage.addChild(FPSText);
+  });
 
   app.ticker.add((time) => {
-    graphics.clear();
-    for (let i = 0; i <= grid.length; i++) {
-      graphics.fill({ color: grid[i] ? "white" : 0x121212 });
-      graphics.filletRect(
-        (i % col) * size,
-        Math.floor(i / col) * size,
-        size - 1,
-        size - 1,
-        1
-      );
-    }
-    // console.log("FPS:", app.ticker.FPS);
+    FPSText.text = "FPS: " + app.ticker.FPS.toFixed(0);
   });
 })();

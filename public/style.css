@@ -12,7 +12,7 @@ body {
   padding: 0;
   color: rgba(255, 255, 255, 0.87);
   background-color: #000000;
-  font-family: 'Geist Mono', monospace;
+  font-family: "Geist Mono", monospace;
 }
 
 #app {
@@ -24,7 +24,7 @@ body {
   align-items: center;
 }
 
-#game-container {
+#game-panel {
   padding: 20px;
   position: absolute;
   left: 0;
@@ -33,18 +33,50 @@ body {
   margin: 15px 10px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 35px;
   border-radius: 16px;
+  opacity: 0.275;
+  transition: opacity 0.25s;
+}
+
+#range {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#game-panel:hover {
+  opacity: 1;
 }
 
 .control {
   display: flex;
-  gap: 5px;
+  gap: 10px;
   align-items: center;
 }
 
 #start-stop-button {
   padding: 8px;
-  border-radius: 5px;
+  border-radius: 6px;
   border: none;
+  font-family: "Geist Mono", monospace;
+}
+
+#show-grid {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #222;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+#game-objects-selector {
+}
+
+#select-button {
+}
+
+#panel {
+  display: none;
 }
