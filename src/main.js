@@ -227,6 +227,13 @@ import { Application, Graphics, Container, Text } from "pixi.js";
     app.stage.addChild(FPSText);
   });
 
+  const button = document.getElementById("select-button");
+  const panel = document.getElementById("panel");
+
+  button.addEventListener("click", (event) => {
+    panel.style.display = panel.style.display == "block" ? "none": "block";
+  });
+
   app.ticker.add((time) => {
     FPSText.text = "FPS: " + app.ticker.FPS.toFixed(0);
   });
