@@ -17,6 +17,7 @@ export default class Universe {
       }
     } else {
       if (n == 3) return 1;
+      return 0;
     }
   }
 
@@ -39,6 +40,20 @@ export default class Universe {
 
   cell(x, y) {
     return x + y * this.width;
+  }
+
+  set(x, y, v) {
+    this.grid[this.cell(x, y)] = v == -1 ? 1 - v : v;
+  }
+
+  setObject(obj, pos) {
+    obj.pattern.forEach((v, i) => {
+      this.set(
+        pos.x + (i % obj.size[0]),
+        pos.y + Math.floor(i / obj.size[0]),
+        v
+      );
+    });
   }
 
   update() {

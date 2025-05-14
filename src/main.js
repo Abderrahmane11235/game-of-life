@@ -9,12 +9,8 @@ import Universe from "./universe";
 
   document.getElementById("pixi-container").appendChild(app.canvas);
 
-  const universe = new Universe(20, 500, 500);
+  const universe = new Universe(20, 55, 55);
 
-  universe.grid[0] = 1;
-  console.log(universe.grid);
-
-  // game-container
   const startStopButton = document.getElementById("start-stop-button");
   let started = true;
 
@@ -22,14 +18,23 @@ import Universe from "./universe";
   const graphicsContainer = new Container();
 
   graphicsContainer.eventMode = "static";
-  graphicsContainer.pivot.set((width * size) / 2, (height * size) / 2);
+  graphicsContainer.pivot.set(
+    (universe.width * universe.size) / 2,
+    (universe.height * universe.size) / 2
+  );
   graphicsContainer.x = app.screen.width / 2;
   graphicsContainer.y = app.screen.height / 2;
 
   universe.graphics = graphics;
 
   const background = new Graphics()
-    .filletRect(0, 0, universe.width * universe.size, universe.height * universe.size, 1)
+    .filletRect(
+      0,
+      0,
+      universe.width * universe.size,
+      universe.height * universe.size,
+      0
+    )
     .fill({ color: 0x121212 });
 
   console.log(graphicsContainer);
@@ -41,22 +46,24 @@ import Universe from "./universe";
 
   universe.update();
 
+  let currentObject = -1;
+
   let intervalID,
     intervalSpeed = 55;
 
   function intervente(started) {
     if (!started) {
       intervalID = setInterval(() => {
-        let nextGrid = [];
+        let nextGrid = new Array(universe.grid.length);
+        nextGrid.fill(0);
 
         universe.grid.forEach((value, cell) => {
           let nn = universe.neighborsNumber(cell);
           nextGrid[cell] = universe.rules(nn, value);
         });
 
-        universe.grid.forEach((v, i) => {
-          universe.grid[i] = nextGrid[i];
-        });
+        console.log(nextGrid);
+        universe.grid = nextGrid;
 
         universe.update();
       }, intervalSpeed);
@@ -85,16 +92,24 @@ import Universe from "./universe";
     const mouse = event.global;
 
     const x = Math.floor(
-      (mouse.x - graphicsContainer.x) / (universe.size * graphicsContainer.scale.x) +
+      (mouse.x - graphicsContainer.x) /
+        (universe.size * graphicsContainer.scale.x) +
         universe.width / 2
     );
     const y = Math.floor(
-      (mouse.y - graphicsContainer.y) / (universe.size * graphicsContainer.scale.y) +
+      (mouse.y - graphicsContainer.y) /
+        (universe.size * graphicsContainer.scale.y) +
         universe.height / 2
     );
 
-    universe.grid[universe.cell(x, y)] = 1 - universe.grid[universe.cell(x, y)];
-    console.log(universe.grid[universe.cell(x, y)])
+    if (currentObject == -1) universe.set(x, y, -1);
+    else {
+      universe.setObject(gameObjects[currentObject].object, {
+        x: x - Math.floor(gameObjects[currentObject].object.size[0] / 2),
+        y: y - Math.floor(gameObjects[currentObject].object.size[1] / 2),
+      });
+    }
+
     universe.update();
   });
 
@@ -135,7 +150,7 @@ import Universe from "./universe";
     .getElementById("pixi-container")
     .addEventListener("wheel", (event) => {
       graphicsContainer.scale.set(
-        graphicsContainer.scale.x * 0.6 ** Math.sign(event.deltaY)
+        graphicsContainer.scale.x * 0.85 ** Math.sign(event.deltaY)
       );
 
       universe.update();
@@ -185,15 +200,23 @@ import Universe from "./universe";
 
     div.className = "gameobj-container";
 
-    objectImg.src = "/assets/objects/" + obj + ".png";
-    objectImg.width = 60;
-    objectImg.alt = obj;
+    objectImg.src = "/assets/objects/" + obj.name + ".png";
+    objectImg.width = 20;
+    objectImg.alt = obj.name;
 
-    label.textContent = obj;
+    label.textContent = obj.name;
 
     div.appendChild(objectImg);
     div.appendChild(label);
     panel.appendChild(div);
+  });
+
+  panel.querySelectorAll(".gameobj-container").forEach((container, i) => {
+    container.addEventListener("click", () => {
+      container.classList.toggle("gameobj-container-clicked");
+      container.classList.toggle("gameobj-container");
+      currentObject = currentObject == -1 ? i : -1;
+    });
   });
 
   app.ticker.add((time) => {

@@ -26,7 +26,7 @@ body {
 
 #game-panel {
   padding: 21px;
-  width: 290px;
+  width: 250;
   position: absolute;
   left: 0;
   top: 0;
@@ -91,7 +91,7 @@ input {
 }
 
 #select-button:hover {
-  color: rgba(255, 255, 255, .98);
+  color: rgba(255, 255, 255, 0.98);
 }
 
 #select-button:active {
@@ -101,8 +101,8 @@ input {
 #panel {
   margin-top: 25px;
   display: none;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 5px;
   height: 300px;
   overflow-y: scroll;
   scrollbar-color: #4c4c4c transparent;
@@ -117,10 +117,22 @@ input {
   background-color: rgba(53, 53, 50, 0.089);
   padding: 14px;
   border-radius: 5px;
+  cursor: pointer;
+}
+
+.gameobj-container-clicked {
+  background-color: rgba(110, 112, 95, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 .gameobj-container:hover {
-  background-color: rgba(110, 112, 95, 0.089)
+  background-color: rgba(110, 112, 95, 0.089);
 }
 
 img {
