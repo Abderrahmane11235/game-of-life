@@ -1,4 +1,6 @@
 import { Application, Graphics, Container, Text } from "pixi.js";
+import { gameObjects } from "./data";
+import Universe from "./universe";
 
 (async () => {
   const app = new Application();
@@ -7,49 +9,10 @@ import { Application, Graphics, Container, Text } from "pixi.js";
 
   document.getElementById("pixi-container").appendChild(app.canvas);
 
-  let size = 10,
-    col = 66,
-    row = 66;
+  const universe = new Universe(20, 500, 500);
 
-  let grid = new Array(col * row);
-  grid.fill(0);
-
-  grid[0] = 1;
-  grid[3] = 1;
-  grid[cell(col / 2, row / 2)] = 1;
-
-  function applyRules(nn, v) {
-    if (v == 1) {
-      if (nn < 2 || nn > 3) {
-        return 0;
-      } else {
-        return 1;
-      }
-    } else {
-      if (nn == 3) return 1;
-    }
-  }
-
-  function neighborsNumber(cell) {
-    let neighbors = [
-      grid[cell - 1] ?? 0,
-      grid[cell + 1] ?? 0,
-      grid[cell + col] ?? 0,
-      grid[cell - col] ?? 0,
-      grid[cell - col - 1] ?? 0,
-      grid[cell - col + 1] ?? 0,
-      grid[cell + col + 1] ?? 0,
-      grid[cell + col - 1] ?? 0,
-    ];
-
-    return neighbors.reduce((total, value) => {
-      return total + value;
-    });
-  }
-
-  function cell(x, y) {
-    return x + y * col;
-  }
+  universe.grid[0] = 1;
+  console.log(universe.grid);
 
   // game-container
   const startStopButton = document.getElementById("start-stop-button");
@@ -59,51 +22,24 @@ import { Application, Graphics, Container, Text } from "pixi.js";
   const graphicsContainer = new Container();
 
   graphicsContainer.eventMode = "static";
-  graphicsContainer.pivot.set((col * size) / 2, (row * size) / 2);
+  graphicsContainer.pivot.set((width * size) / 2, (height * size) / 2);
   graphicsContainer.x = app.screen.width / 2;
   graphicsContainer.y = app.screen.height / 2;
 
+  universe.graphics = graphics;
+
   const background = new Graphics()
-    .filletRect(0, 0, graphicsContainer.width, graphicsContainer.height, 1)
+    .filletRect(0, 0, universe.width * universe.size, universe.height * universe.size, 1)
     .fill({ color: 0x121212 });
+
+  console.log(graphicsContainer);
 
   graphicsContainer.addChild(background);
   graphicsContainer.addChild(graphics);
 
   app.stage.addChild(graphicsContainer);
 
-  function updateGrid() {
-    graphics.clear();
-
-    for (let i = 0; i < col * row; i++) {
-      if (1) {
-        graphics
-          .filletRect(
-            (i % col) * size,
-            Math.floor(i / col) * size,
-            size,
-            size,
-            0
-          )
-          .fill({
-            color: grid[i]
-              ? [
-                  "#69247C",
-                  "#FFB22C",
-                  "#F6FA70",
-                  "#1230AE",
-                  "#ffffff",
-                  "#FE7743",
-                  "#D50B8B",
-                  "#0079FF",
-                  "#FF9F00",
-                ][neighborsNumber(i)]
-              : 0x121212,
-          });
-      }
-    }
-  }
-  updateGrid();
+  universe.update();
 
   let intervalID,
     intervalSpeed = 55;
@@ -113,16 +49,16 @@ import { Application, Graphics, Container, Text } from "pixi.js";
       intervalID = setInterval(() => {
         let nextGrid = [];
 
-        grid.forEach((value, cell) => {
-          let nn = neighborsNumber(cell);
-          nextGrid[cell] = applyRules(nn, value);
+        universe.grid.forEach((value, cell) => {
+          let nn = universe.neighborsNumber(cell);
+          nextGrid[cell] = universe.rules(nn, value);
         });
 
-        grid.forEach((v, i) => {
-          grid[i] = nextGrid[i];
+        universe.grid.forEach((v, i) => {
+          universe.grid[i] = nextGrid[i];
         });
 
-        updateGrid();
+        universe.update();
       }, intervalSpeed);
     } else {
       clearInterval(intervalID);
@@ -149,16 +85,17 @@ import { Application, Graphics, Container, Text } from "pixi.js";
     const mouse = event.global;
 
     const x = Math.floor(
-      (mouse.x - graphicsContainer.x) / (size * graphicsContainer.scale.x) +
-        col / 2
+      (mouse.x - graphicsContainer.x) / (universe.size * graphicsContainer.scale.x) +
+        universe.width / 2
     );
     const y = Math.floor(
-      (mouse.y - graphicsContainer.y) / (size * graphicsContainer.scale.y) +
-        row / 2
+      (mouse.y - graphicsContainer.y) / (universe.size * graphicsContainer.scale.y) +
+        universe.height / 2
     );
 
-    grid[cell(x, y)] = !grid[cell(x, y)];
-    updateGrid();
+    universe.grid[universe.cell(x, y)] = 1 - universe.grid[universe.cell(x, y)];
+    console.log(universe.grid[universe.cell(x, y)])
+    universe.update();
   });
 
   let drag = false;
@@ -191,16 +128,18 @@ import { Application, Graphics, Container, Text } from "pixi.js";
     .getElementById("grid-size-control")
     .addEventListener("change", (event) => {
       graphicsContainer.scale.set(event.target.value);
-      updateGrid();
+      universe.update();
     });
 
-  window.addEventListener("wheel", (event) => {
-    graphicsContainer.scale.set(
-      graphicsContainer.scale.x - 0.1 * Math.sign(event.deltaY)
-    );
+  document
+    .getElementById("pixi-container")
+    .addEventListener("wheel", (event) => {
+      graphicsContainer.scale.set(
+        graphicsContainer.scale.x * 0.6 ** Math.sign(event.deltaY)
+      );
 
-    updateGrid();
-  });
+      universe.update();
+    });
 
   window.addEventListener("mousedown", () => {
     drag = true;
@@ -229,9 +168,32 @@ import { Application, Graphics, Container, Text } from "pixi.js";
 
   const button = document.getElementById("select-button");
   const panel = document.getElementById("panel");
+  const plusMinusIcon = document.getElementById("plus-minus");
 
   button.addEventListener("click", (event) => {
-    panel.style.display = panel.style.display == "block" ? "none": "block";
+    panel.style.display = panel.style.display == "grid" ? "none" : "grid";
+    plusMinusIcon.className =
+      plusMinusIcon.className == "fa-solid fa-minus"
+        ? "fa-solid fa-plus"
+        : "fa-solid fa-minus";
+  });
+
+  gameObjects.forEach((obj, i) => {
+    let div = document.createElement("div");
+    let objectImg = document.createElement("img");
+    let label = document.createElement("label");
+
+    div.className = "gameobj-container";
+
+    objectImg.src = "/assets/objects/" + obj + ".png";
+    objectImg.width = 60;
+    objectImg.alt = obj;
+
+    label.textContent = obj;
+
+    div.appendChild(objectImg);
+    div.appendChild(label);
+    panel.appendChild(div);
   });
 
   app.ticker.add((time) => {

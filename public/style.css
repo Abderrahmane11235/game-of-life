@@ -25,7 +25,8 @@ body {
 }
 
 #game-panel {
-  padding: 20px;
+  padding: 21px;
+  width: 290px;
   position: absolute;
   left: 0;
   top: 0;
@@ -43,6 +44,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  width: 100%;
+}
+
+input {
+  width: 100%;
 }
 
 #game-panel:hover {
@@ -53,6 +59,7 @@ body {
   display: flex;
   gap: 10px;
   align-items: center;
+  width: 100%;
 }
 
 #start-stop-button {
@@ -75,8 +82,47 @@ body {
 }
 
 #select-button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.87);
+  font-family: "Geist Mono", monospace;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+#select-button:hover {
+  color: rgba(255, 255, 255, .98);
+}
+
+#select-button:active {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 #panel {
+  margin-top: 25px;
   display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  height: 300px;
+  overflow-y: scroll;
+  scrollbar-color: #4c4c4c transparent;
+  scrollbar-width: thin;
+}
+
+.gameobj-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(53, 53, 50, 0.089);
+  padding: 14px;
+  border-radius: 5px;
+}
+
+.gameobj-container:hover {
+  background-color: rgba(110, 112, 95, 0.089)
+}
+
+img {
+  height: auto;
 }
