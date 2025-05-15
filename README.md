@@ -3,6 +3,8 @@
 A modern, interactive implementation of Conway's Game of Life using [PixiJS](https://pixijs.com/).  
 This project features a fast, scalable grid, pattern selection, and a smooth UI.
 
+![Game of Life Demo](public/demo.gif)
+
 ## Features
 
 - **Fast rendering** with PixiJS

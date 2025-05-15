@@ -43,7 +43,7 @@ export default class Universe {
   }
 
   set(x, y, v) {
-    this.grid[this.cell(x, y)] = v == -1 ? 1 - v : v;
+    this.grid[this.cell(x, y)] = v;
   }
 
   setObject(obj, pos) {

@@ -102,7 +102,9 @@ import Universe from "./universe";
         universe.height / 2
     );
 
-    if (currentObject == -1) universe.set(x, y, -1);
+    // universe.set(x, y, 1)
+
+    if (currentObject == -1) universe.set(x, y, 1);
     else {
       universe.setObject(gameObjects[currentObject].object, {
         x: x - Math.floor(gameObjects[currentObject].object.size[0] / 2),
